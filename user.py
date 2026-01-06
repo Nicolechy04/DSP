@@ -243,7 +243,7 @@ if uploaded_file and system and api_key:
     tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
     tfile.write(uploaded_file.read())
     
-    if st.button("✨ Analyze My Professional Presence"):
+    if st.button("✨ Analyze My Emotion"):
         with st.spinner("Processing video (this may take a moment)..."):
             try:
                 # Extract Audio
@@ -291,78 +291,66 @@ if st.session_state.analysis_result:
     
     st.divider()
 
-    # --- UI FIX: Use Session State to track the active view ---
     if 'active_view' not in st.session_state:
         st.session_state.active_view = "📊 Data Insights"
 
-    # Create a layout that persists across reruns
-    # Using st.radio as a horizontal toggle acts like tabs but with memory
-    col_nav, _ = st.columns([1, 2]) # Limit width of the toggle
+    st.divider()
+    col_nav, _ = st.columns([1, 2])
     with col_nav:
         selected_view = st.radio(
             "Select View Mode:",
-            ["📊 Data Insights", "📋 Professional Report"],
+            ["📊 Data Insights", "📋 Full Report"],
             horizontal=True,
             label_visibility="collapsed",
-            key="active_view" # This binds the selection to session state!
+            key="active_view"
         )
 
-    # --- VIEW 1: DATA INSIGHTS ---
     if selected_view == "📊 Data Insights":
         col_m, col_c = st.columns(2)
         with col_m:
             st.metric("Dominant Expression", res['overall'])
-            
         with col_c:
             # Radar Chart
             fig = go.Figure(data=go.Scatterpolar(
-                r=res['all_probs'], 
-                theta=EMOTIONS, 
-                fill='toself', 
-                marker=dict(color='#6C5CE7')
+                r=res['all_probs'], theta=EMOTIONS, fill='toself'
             ))
-            fig.update_layout(
-                polar=dict(radialaxis=dict(visible=True, range=[0, 1])), 
-                showlegend=False, 
-                height=350,
-                margin=dict(l=40, r=40, t=20, b=20)
-            )
             st.plotly_chart(fig, use_container_width=True)
 
-    # --- VIEW 2: PROFESSIONAL REPORT (CHAT) ---
-    elif selected_view == "📋 Professional Report":
-        # 1. Initial Report Generation
+    elif selected_view == "📋 Full Report":
+        # Generate Report 
         if not st.session_state.chat_history:
-            with st.spinner("Consulting Gemini Coach..."):
+            with st.spinner("Consulting AI Coach"):
                 report = get_coaching_feedback(res, [], EMOTIONS)
                 st.session_state.chat_history.append({"role": "assistant", "content": report})
         
-        # 2. Display Chat History
-        # We render the chat history in a container to keep it organized
         chat_container = st.container()
         with chat_container:
-            # Display the initial report distinctly
+            # Main Report (Styled Box)
             if st.session_state.chat_history:
-                st.markdown('<div class="report-container">', unsafe_allow_html=True)
-                st.markdown(st.session_state.chat_history[0]['content'])
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="report-container">
+                    {st.session_state.chat_history[0]['content']}
+                </div>
+                """, unsafe_allow_html=True)
 
-            # Display subsequent Q&A
-            st.subheader("💬 Deep-Dive Conversation")
+            # Subsequent Conversation
             for msg in st.session_state.chat_history[1:]:
                 with st.chat_message(msg['role']):
                     st.write(msg['content'])
+            
+            # Add some padding at the bottom so the last message isn't hidden by the input bar
+            st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
 
-        # 3. User Input (This forces a rerun, but session_state.active_view keeps us here!)
-        if prompt := st.chat_input("Ask about specific moments or improvement tips..."):
-            # Add user message immediately
+    # 3. CHAT INPUT (Placed Globally at the Bottom) 
+    if st.session_state.active_view == "📋 Full Report":
+        if prompt := st.chat_input("Ask your coach a question"):
             st.session_state.chat_history.append({"role": "user", "content": prompt})
             
-            # Generate response
-            # Note: We display a temporary spinner while waiting
-            with st.spinner("Coach is typing..."):
-                reply = get_coaching_feedback(res, st.session_state.chat_history, EMOTIONS)
-                st.session_state.chat_history.append({"role": "assistant", "content": reply})
-            
-            # Rerun to update the chat_container with the new messages
+
+            st.rerun()
+
+    if st.session_state.chat_history and st.session_state.chat_history[-1]['role'] == "user":
+        with st.spinner("AI coach is thinking"):
+            reply = get_coaching_feedback(res, st.session_state.chat_history, EMOTIONS)
+            st.session_state.chat_history.append({"role": "assistant", "content": reply})
             st.rerun()
