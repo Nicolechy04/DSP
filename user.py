@@ -290,11 +290,25 @@ if st.session_state.analysis_result:
     res = st.session_state.analysis_result
     
     st.divider()
-    
-    # Tabs for UI organization
-    tab_data, tab_report = st.tabs(["📊 Data Insights", "📋 Professional Report"])
-    
-    with tab_data:
+
+    # --- UI FIX: Use Session State to track the active view ---
+    if 'active_view' not in st.session_state:
+        st.session_state.active_view = "📊 Data Insights"
+
+    # Create a layout that persists across reruns
+    # Using st.radio as a horizontal toggle acts like tabs but with memory
+    col_nav, _ = st.columns([1, 2]) # Limit width of the toggle
+    with col_nav:
+        selected_view = st.radio(
+            "Select View Mode:",
+            ["📊 Data Insights", "📋 Professional Report"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="active_view" # This binds the selection to session state!
+        )
+
+    # --- VIEW 1: DATA INSIGHTS ---
+    if selected_view == "📊 Data Insights":
         col_m, col_c = st.columns(2)
         with col_m:
             st.metric("Dominant Expression", res['overall'])
@@ -315,7 +329,8 @@ if st.session_state.analysis_result:
             )
             st.plotly_chart(fig, use_container_width=True)
 
-    with tab_report:
+    # --- VIEW 2: PROFESSIONAL REPORT (CHAT) ---
+    elif selected_view == "📋 Professional Report":
         # 1. Initial Report Generation
         if not st.session_state.chat_history:
             with st.spinner("Consulting Gemini Coach..."):
@@ -323,21 +338,31 @@ if st.session_state.analysis_result:
                 st.session_state.chat_history.append({"role": "assistant", "content": report})
         
         # 2. Display Chat History
-        st.markdown('<div class="report-container">', unsafe_allow_html=True)
-        st.markdown(st.session_state.chat_history[0]['content'])
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.subheader("💬 Deep-Dive Conversation")
-        for msg in st.session_state.chat_history[1:]:
-            with st.chat_message(msg['role']):
-                st.write(msg['content'])
+        # We render the chat history in a container to keep it organized
+        chat_container = st.container()
+        with chat_container:
+            # Display the initial report distinctly
+            if st.session_state.chat_history:
+                st.markdown('<div class="report-container">', unsafe_allow_html=True)
+                st.markdown(st.session_state.chat_history[0]['content'])
+                st.markdown('</div>', unsafe_allow_html=True)
 
-        # 3. User Input
+            # Display subsequent Q&A
+            st.subheader("💬 Deep-Dive Conversation")
+            for msg in st.session_state.chat_history[1:]:
+                with st.chat_message(msg['role']):
+                    st.write(msg['content'])
+
+        # 3. User Input (This forces a rerun, but session_state.active_view keeps us here!)
         if prompt := st.chat_input("Ask about specific moments or improvement tips..."):
+            # Add user message immediately
             st.session_state.chat_history.append({"role": "user", "content": prompt})
-            st.chat_message("user").write(prompt)
             
+            # Generate response
+            # Note: We display a temporary spinner while waiting
             with st.spinner("Coach is typing..."):
                 reply = get_coaching_feedback(res, st.session_state.chat_history, EMOTIONS)
                 st.session_state.chat_history.append({"role": "assistant", "content": reply})
-                st.rerun()
+            
+            # Rerun to update the chat_container with the new messages
+            st.rerun()
