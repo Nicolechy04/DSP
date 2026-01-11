@@ -1,0 +1,18 @@
+# Ignore virtual environments
+venv/
+env/
+.env
+
+# Ignore compiled python files
+__pycache__/
+*.pyc
+
+# Ignore huge datasets (Customize this!)
+# Add the folder name where your raw images/videos are
+Dataset/
+data_1/
+*.mp4
+*.wav
+*.avi
+.npy
+.jpg
