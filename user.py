@@ -161,13 +161,13 @@ def extract_inputs(y, sr, video_path, t):
 def get_coaching_feedback(analysis, chat_history, emotion_labels):
     is_initial = len(chat_history) == 0
     
-    if is_initial:
-        system_instruction = (
+    # --- 1. DEFINE THE STRICT REPORT FORMAT (For the first analysis only) ---
+    report_instruction = (
             "You are an Elite Communication Coach. Analyze the user's non-verbal cues based on the data provided. "
-            "Strictly follow the structure below:\n\n" 
+            "Strictly follow the structure below:\n\n"
 
             "Write 2-3 insightful sentences explaining the dominant emotion. Discuss how this specific vibe affects audience perception.\n\n"
-
+          
             "## Micro-Expression Analysis\n"
             "List ONLY the top 3 emotions with the highest probabilities. Use this exact bullet format:\n"
             "* **[Emotion Name] ([Percentage]%)**: [One sentence explaining the probable facial expressions and vocal tones shown].\n\n"
@@ -180,23 +180,29 @@ def get_coaching_feedback(analysis, chat_history, emotion_labels):
             "- If **Sad**: Focus on **ELEVATION** (you likely look low-energy or resigned; focus on lifting your posture, voice, and energy to show resilience).\n"
             "- If **Surprise**: Focus on **RECOVERY** (surprise should be fleeting; focus on pivoting quickly from shock to curiosity/analysis).\n"
             "- If **Neutral**: Focus on **AMPLIFICATION** (add vocal variety and facial animation so you do not appear bored or robotic).\n\n"
-            
+
             "1. [Tip to adjust posture/face]. [How this improves presence].\n"
             "2. [Tip on speed/volume]. [How this ensures clarity].\n"
             "3. [A phrase to say]. [How this gives context to your expression].\n"
             "4. [Internal thought]. [How this aligns intent with impact].\n"
             "5. [Body language tip]. [How this connects you with the listener]."
-        )
-    else:
-        system_instruction = "You are an Elite Communication Coach. Be concise, warm, and helpful."
+    )
+
+    chat_persona = (
+        "You are an Elite Communication Coach. The user has already received their initial video analysis report. "
+        "Now, you are in a conversational mode. Answer their follow-up questions naturally, concisely, and warmly. "
+        "Do NOT repeat the full report format (Executive Summary, etc.) unless specifically asked to re-analyze. "
+        "Focus on giving specific, bite-sized advice based on the context of their questions."
+    )
 
     try:
-        model_ai = genai.GenerativeModel(model_name='gemini-2.5-flash', system_instruction=system_instruction)
+        current_instruction = report_instruction if is_initial else chat_persona
+
+        model_ai = genai.GenerativeModel(model_name='gemini-2.5-flash', system_instruction=current_instruction)
         
         dominant = analysis['overall']
         radar_str = ", ".join([f"{emo}: {prob:.2f}" for emo, prob in zip(emotion_labels, analysis['all_probs'])])
-        
-        context = f"ANALYSIS DATA: Dominant Emotion={dominant}. Full Probability Profile: {radar_str}."
+        context_str = f"ANALYSIS DATA: Dominant Emotion={dominant}. Full Probability Profile: {radar_str}."
 
         gemini_history = []
         for msg in chat_history:
@@ -206,7 +212,8 @@ def get_coaching_feedback(analysis, chat_history, emotion_labels):
         chat = model_ai.start_chat(history=gemini_history)
         
         if is_initial:
-            prompt = f"SYSTEM: The user has uploaded a video. {context}. Provide the initial report."
+
+            prompt = f"SYSTEM: The user has uploaded a video. {context_str}. Provide the initial report."
         else:
             prompt = chat_history[-1]['content']
         
