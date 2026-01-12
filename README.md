@@ -85,9 +85,7 @@ streamlit run app.py
 │   ├── efficientnet_improved.keras       # Face Model
 │   ├── Audio_EfficientNet_Refined.keras  # Audio Model
 │   └── modelfusion_2.keras               # Fusion Model
-├── data_1/                # (Optional) Sample datasets
-├── app.py                 # Streamlit Application
-├── utils.py               # Helper functions (preprocessing, etc.)
+├── user.py                 # Streamlit Application
 └── requirements.txt       # Dependencies
 
 ```
@@ -99,12 +97,6 @@ streamlit run app.py
 * **Training Strategy**: Used **GroupShuffleSplit** to ensure no actor overlap between train/test sets (preventing data leakage).
 * **Optimization**: Employed **Test Time Augmentation (TTA)** during evaluation to ensure theoretical maximum accuracy.
 * **Loss Function**: Categorical Crossentropy with **Label Smoothing** to prevent overconfidence.
-
----
-
-## 👤 Author
-
-**Nicole** *Data Science Undergrad & AI Enthusiast*
 
 ---
 
