@@ -94,9 +94,9 @@ streamlit run app.py
 
 ## 📊 Model Performance
 
-* **Training Strategy**: Used **GroupShuffleSplit** to ensure no actor overlap between train/test sets (preventing data leakage).
-* **Optimization**: Employed **Test Time Augmentation (TTA)** during evaluation to ensure theoretical maximum accuracy.
-* **Loss Function**: Categorical Crossentropy with **Label Smoothing** to prevent overconfidence.
+* **72 %** testing accuracy on multimodal
+* **52 %** testing accuracy on facial model
+* **55 %** testing accuracy on audio model
 
 ---
 
