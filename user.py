@@ -226,7 +226,7 @@ st.title("🧘 Personal Emotion Coach")
 
 #PROJECT OVERVIEW
 if page_selection == "📂 Project Overview":
-    st.subheader("DSP Title: Emotional-Based Multimodal Conversational Feedback")
+    st.subheader("DSP Title: Emotion-Based Multimodal Conversational Feedback")
     st.caption("Student: Chua Hui Ying Nicole | Supervisor: Dr. Hoo Wai Lam")
     st.divider()
 
