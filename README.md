@@ -94,7 +94,7 @@ streamlit run app.py
 
 ## 📊 Model Performance
 
-* **72 %** testing accuracy on multimodal
+* **72 %** testing accuracy on multimodal (gated late fusion with ensemble stacking)
 * **52 %** testing accuracy on facial model
 * **55 %** testing accuracy on audio model
 
@@ -102,5 +102,5 @@ streamlit run app.py
 
 ### ✨ Acknowledgements
 
-* Dataset: [Insert Dataset Name, e.g., RAVDESS/CREMA-D]
+* Dataset: RAVDESS/CREMA-D
 * Libraries: TensorFlow Keras, Streamlit, Librosa, OpenCV
