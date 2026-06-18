@@ -1,10 +1,10 @@
-# 🎤 Emotion-Based Multimodal Conversational Feedback
+# Emotion-Based Multimodal Conversational Feedback
 
 An AI-powered **Communication Coach** that analyzes non-verbal cues (Facial Expressions + Voice Tone) to provide actionable feedback on your presentation style.
 
 This project utilizes **Multimodal Deep Learning**, fusing Facial and Audio Model Processing to detect 7 distinct emotional states with high precision.
 
-**[👉 Try the Live App Here](https://personal-emotion-coach.streamlit.app/)**
+**[ Try the Live App Here](https://personal-emotion-coach.streamlit.app/)**
 
 ---
 
